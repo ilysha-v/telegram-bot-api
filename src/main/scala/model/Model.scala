@@ -1,4 +1,4 @@
-sealed trait TelegramMessage
+package model
 
 case class Sender(
     id: Int,
@@ -15,12 +15,4 @@ case class ChatInfo(
     lastName: Option[String]
 )
 
-case class Message(
-    id: Int,
-    sender: Sender,
-    chatInfo: ChatInfo,
-    date: Int,
-    text: Option[String]
-) extends TelegramMessage
-
-case class ApiResponse[A <: TelegramMessage](isSuccess: Boolean, body: A)
+case class Update(id: Int, message: Message)
