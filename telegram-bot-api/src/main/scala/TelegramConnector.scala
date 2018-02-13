@@ -3,14 +3,18 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpMethods, HttpRequest, HttpResponse}
 import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult}
 import akka.stream.scaladsl.{Keep, Sink, Source}
-import spray.json.{DefaultJsonProtocol, JsonFormat}
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
 
-class TelegramConnector(token: String)(
-  implicit as: ActorSystem, ec: ExecutionContext, mat: ActorMaterializer) {
-  private val baseUrl = s"https://api.telegram.org/bot$token/"
+/***
+  * Lower level api client - provide full access to telegram responses.
+  * For more high-level APIs you should use TelegramConnection
+  */
+class TelegramConnector(token: String)(implicit as: ActorSystem,
+                                       ec: ExecutionContext,
+                                       mat: ActorMaterializer) {
+  private val baseUrl = s"api.telegram.org"
   private lazy val queue = {
     val connectionPool =
       Http().cachedHostConnectionPoolHttps[Promise[HttpResponse]](baseUrl)
@@ -26,9 +30,9 @@ class TelegramConnector(token: String)(
   }
 
   def getUpdates(): Future[HttpResponse] = { // todo telegram response wrapper should be returned from here
-    val methodName = "getUpdates"
+    val link = s"https://$baseUrl/bot$token/getUpdates" // todo create some kind of url builder
 
-    val request = HttpRequest(method = HttpMethods.GET, uri = methodName)
+    val request = HttpRequest(method = HttpMethods.GET, uri = link)
     sendRequest(request)
   }
 
@@ -44,15 +48,5 @@ class TelegramConnector(token: String)(
         Future.failed(new RuntimeException(
           "Queue was closed (pool shut down) while running the request. Try again later."))
     }
-  }
-}
-
-private object TelegramConnector {
-  case class TelegramApiResponse[T](ok: Boolean, result: T)
-
-  object JsonProtocol extends DefaultJsonProtocol with TelegramJsonProtocol { // todo move to main protocol
-    implicit def apiResponseFormat[A](
-                                       implicit jf: JsonFormat[A]): JsonFormat[TelegramApiResponse[A]] =
-      jsonFormat2(TelegramApiResponse[A])
   }
 }

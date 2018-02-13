@@ -15,3 +15,6 @@ case class TextMessage(
     text: Option[String]
 ) extends Message
 
+case class TelegramApiResponse[T](ok: Boolean, result: T)
+
+

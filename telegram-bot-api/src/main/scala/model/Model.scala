@@ -15,4 +15,5 @@ case class ChatInfo(
     lastName: Option[String]
 )
 
-case class Update(id: Int, message: Message)
+sealed trait Update
+case class MessageUpdate(id: Int, message: Message) extends Update
