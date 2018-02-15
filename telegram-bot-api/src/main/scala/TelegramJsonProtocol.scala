@@ -28,7 +28,7 @@ trait TelegramJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
     override def write(obj: Message): JsValue = serializationError("not implemented")
   }
 
-  implicit val updateFormat = new RootJsonFormat[MessageUpdate] {
+  implicit val messageUpdateFormat = new RootJsonFormat[MessageUpdate] {
     override def read(json: JsValue): MessageUpdate = json match {
       case obj: JsObject =>
         val updateId = obj.fields("update_id").convertTo[Int]
@@ -41,6 +41,15 @@ trait TelegramJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
     }
 
     override def write(obj: MessageUpdate): JsValue = serializationError("not implemented")
+  }
+
+  implicit val updateFormat = new RootJsonFormat[Update] {
+    override def read(json: JsValue): Update = json match {
+      case obj: JsObject if obj.fields.contains("message") => obj.convertTo[MessageUpdate]
+      case _ => deserializationError("Value of update field must be an object")
+    }
+
+    override def write(obj: Update): JsValue = ???
   }
 }
 

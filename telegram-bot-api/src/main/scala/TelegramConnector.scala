@@ -1,8 +1,10 @@
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpMethods, HttpRequest, HttpResponse}
+import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult}
 import akka.stream.scaladsl.{Keep, Sink, Source}
+import model.{TelegramApiResponse, Update}
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
@@ -14,10 +16,12 @@ import scala.util.{Failure, Success}
 class TelegramConnector(token: String)(implicit as: ActorSystem,
                                        ec: ExecutionContext,
                                        mat: ActorMaterializer) {
+  import spray.json._
+  import TelegramJsonProtocol._
+
   private val baseUrl = s"api.telegram.org"
   private lazy val queue = {
-    val connectionPool =
-      Http().cachedHostConnectionPoolHttps[Promise[HttpResponse]](baseUrl)
+    val connectionPool = Http().cachedHostConnectionPoolHttps[Promise[HttpResponse]](baseUrl)
 
     Source
       .queue[(HttpRequest, Promise[HttpResponse])](20, OverflowStrategy.dropNew) // todo size to config
@@ -29,11 +33,15 @@ class TelegramConnector(token: String)(implicit as: ActorSystem,
       .run()
   }
 
-  def getUpdates(): Future[HttpResponse] = { // todo telegram response wrapper should be returned from here
+  def getUpdates(): Future[TelegramApiResponse[Seq[Update]]] = {
     val link = s"https://$baseUrl/bot$token/getUpdates" // todo create some kind of url builder
 
+    val f = TelegramJsonProtocol.updateFormat
+
     val request = HttpRequest(method = HttpMethods.GET, uri = link)
-    sendRequest(request)
+    sendRequest(request).flatMap { response =>
+      Unmarshal(response).to[String] // todo unmarshallers?
+    }.map(_.parseJson.convertTo[TelegramApiResponse[Seq[Update]]])
   }
 
   private def sendRequest(request: HttpRequest): Future[HttpResponse] = {

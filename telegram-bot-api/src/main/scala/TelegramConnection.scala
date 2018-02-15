@@ -1,29 +1,21 @@
 import akka.actor.ActorSystem
-import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
-import model.{Message, TelegramApiResponse, MessageUpdate}
+import model.Update
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class TelegramConnection(private val connector: TelegramConnector)(
-    implicit as: ActorSystem) {
-  import spray.json._
-  import TelegramJsonProtocol._
+class TelegramConnection(private val connector: TelegramConnector)(implicit as: ActorSystem) {
 
   private implicit val mat = ActorMaterializer()
   private implicit val executionContext = as.dispatcher
 
-  def getNewMessages(): Future[Seq[Message]] = {
+  def getUpdates(): Future[Seq[Update]] = {
     connector
       .getUpdates()
-      .flatMap { response =>
-        Unmarshal(response).to[String] // todo unmarshallers?
-      }.map { jsonString =>
-        val response =
-          jsonString.parseJson.convertTo[TelegramApiResponse[Seq[MessageUpdate]]]
-        if (response.ok) response.result.map(_.message)
-        else throw new RuntimeException("Telegram error") // todo
-      }
+        .flatMap { r =>
+          if (r.ok) Future.successful(r.result)
+          else Future.failed(new RuntimeException("problem")) // todo typed exception
+        }
   }
 }
 

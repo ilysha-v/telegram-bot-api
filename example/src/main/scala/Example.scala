@@ -13,7 +13,7 @@ object Example {
     val connector = TelegramConnection(token)
 
     for {
-      updates <- connector.getNewMessages()
+      updates <- connector.getUpdates()
       _ = println(updates)
     } yield as.terminate()
   }
