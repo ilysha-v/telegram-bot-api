@@ -8,6 +8,26 @@ trait TelegramJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
   implicit def apiResponseFormat[A](implicit jf: JsonFormat[A]): JsonFormat[TelegramApiResponse[A]] =
     jsonFormat2(TelegramApiResponse[A])
 
+  implicit val messageFormat = new RootJsonFormat[Message] {
+    override def read(json: JsValue): Message = json match {
+      case obj: JsObject =>
+        val id = obj.fields("message_id").convertTo[Int]
+        val sender = obj.fields.get("from").map(_.convertTo[Sender])
+        val date = obj.fields("date").convertTo[Int]
+        val chatInfo = obj.fields("chat").convertTo[ChatInfo]
+        val text = obj.fields.get("text").map(_.convertTo[String])
+
+        // todo other fields
+        // todo be careful with options
+        // todo Map.get will return default value, should return some kind of error instead
+
+        Message(id, sender, date, chatInfo, text)
+      case _ => deserializationError("Value of message field must be an object")
+    }
+
+    override def write(obj: Message): JsValue = serializationError("not implemented")
+  }
+
   implicit val updateFormat = new RootJsonFormat[MessageUpdate] {
     override def read(json: JsValue): MessageUpdate = json match {
       case obj: JsObject =>
@@ -17,10 +37,10 @@ trait TelegramJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
             val payload = obj.fields("message").convertTo[Message]
             MessageUpdate(updateId, payload)
         }
-      case _ => ??? // todo
+      case _ => deserializationError("Value of update field must be an object")
     }
 
-    override def write(obj: MessageUpdate): JsValue = ???
+    override def write(obj: MessageUpdate): JsValue = serializationError("not implemented")
   }
 }
 

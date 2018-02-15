@@ -15,7 +15,7 @@ object Example {
     for {
       updates <- connector.getNewMessages()
       _ = println(updates)
-    } yield ()
+    } yield as.terminate()
   }
 }
 

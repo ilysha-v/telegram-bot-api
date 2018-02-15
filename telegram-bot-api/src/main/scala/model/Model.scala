@@ -1,5 +1,15 @@
 package model
 
+case class Message(
+    id: Int,
+    sender: Option[Sender],
+    date: Int,
+    chatInfo: ChatInfo,
+    text: Option[String]
+)
+
+case class TelegramApiResponse[T](ok: Boolean, result: T)
+
 case class Sender(
     id: Int,
     isBot: Boolean,
