@@ -1,7 +1,9 @@
 package model
 
+case class MessageId(id: Int) extends AnyVal
+
 case class Message(
-    id: Int,
+    id: MessageId,
     sender: Option[Sender],
     date: Int,
     chatInfo: ChatInfo,
@@ -25,5 +27,9 @@ case class ChatInfo(
     lastName: Option[String]
 )
 
-sealed trait Update
+sealed trait Update {
+  val id: Int
+}
 case class MessageUpdate(id: Int, message: Message) extends Update
+
+case class ResponseMessage(text: String, replyTo: Option[MessageId])

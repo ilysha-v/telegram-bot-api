@@ -1,8 +1,21 @@
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.http.scaladsl.model.ContentTypes
+import akka.http.scaladsl.unmarshalling.Unmarshaller
 import model._
 import spray.json._
 
 trait TelegramJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
+  implicit def createUnmarshaller[A](implicit jf: JsonReader[A]) = {
+    Unmarshaller
+      .stringUnmarshaller
+      .forContentTypes(ContentTypes.`application/json`)
+      .map(_.parseJson.convertTo[A])
+  }
+
+  implicit def anyValJsonFormat[A]() = {
+    // shapeles based format for anyvals
+  }
+
   implicit val chatInfoFormat = jsonFormat(ChatInfo, "id", "first_name", "last_name")
   implicit val senderFormat = jsonFormat(Sender, "id", "is_bot", "first_name", "last_name", "username", "language_code")
   implicit def apiResponseFormat[A](implicit jf: JsonFormat[A]): JsonFormat[TelegramApiResponse[A]] =
@@ -11,7 +24,7 @@ trait TelegramJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
   implicit val messageFormat = new RootJsonFormat[Message] {
     override def read(json: JsValue): Message = json match {
       case obj: JsObject =>
-        val id = obj.fields("message_id").convertTo[Int]
+        val id = obj.fields("message_id").convertTo[MessageId]
         val sender = obj.fields.get("from").map(_.convertTo[Sender])
         val date = obj.fields("date").convertTo[Int]
         val chatInfo = obj.fields("chat").convertTo[ChatInfo]
@@ -51,6 +64,8 @@ trait TelegramJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
 
     override def write(obj: Update): JsValue = ???
   }
+
+  implicit val responseFormat = jsonFormat(ResponseMessage, "chat_id", "text")
 }
 
 object TelegramJsonProtocol extends TelegramJsonProtocol

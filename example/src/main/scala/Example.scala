@@ -1,6 +1,7 @@
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
+import model.{MessageUpdate, ResponseMessage}
 
 object Example {
   def main(args: Array[String]): Unit = {
@@ -12,10 +13,17 @@ object Example {
     val token = config.getString("token")
     val connector = TelegramConnection(token)
 
-    for {
-      updates <- connector.getUpdates()
-      _ = println(updates)
-    } yield as.terminate()
+    connector.getUpdates().foreach(_.map {
+        case u: MessageUpdate => connector.sendMessage(u.id, ResponseMessage("Yep", Some(u.message.id)))
+        case u => connector.sendMessage(u.id, ResponseMessage("what?", None))
+      }
+    )
+
+//    for {
+//      updates <-
+//
+//      _ = println(updates)
+//    } yield as.terminate()
   }
 }
 

@@ -1,10 +1,11 @@
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{HttpMethods, HttpRequest, HttpResponse}
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult}
 import akka.stream.scaladsl.{Keep, Sink, Source}
-import model.{TelegramApiResponse, Update}
+import akka.util.ByteString
+import model.{Message, ResponseMessage, TelegramApiResponse, Update}
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
@@ -34,14 +35,31 @@ class TelegramConnector(token: String)(implicit as: ActorSystem,
   }
 
   def getUpdates(): Future[TelegramApiResponse[Seq[Update]]] = {
-    val link = s"https://$baseUrl/bot$token/getUpdates" // todo create some kind of url builder
+    val methodName = "getUpdates"
 
-    val f = TelegramJsonProtocol.updateFormat
-
-    val request = HttpRequest(method = HttpMethods.GET, uri = link)
+    val request = HttpRequest(method = HttpMethods.GET, uri = buildUri(methodName))
     sendRequest(request).flatMap { response =>
-      Unmarshal(response).to[String] // todo unmarshallers?
-    }.map(_.parseJson.convertTo[TelegramApiResponse[Seq[Update]]])
+      Unmarshal(response).to[TelegramApiResponse[Seq[Update]]]
+    }
+  }
+
+  def sendMessage(chatId: Int, message: ResponseMessage): Future[TelegramApiResponse[Message]] = {
+    val methodName = "sendMessage"
+
+    val payload = HttpEntity.Strict(
+      contentType = ContentTypes.`application/json`,
+      data = ByteString(message.toJson.compactPrint)
+    )
+
+    val request = HttpRequest(
+      uri = buildUri(methodName),
+      method = HttpMethods.POST,
+      entity = payload
+    )
+
+    sendRequest(request).flatMap { response =>
+      Unmarshal(response).to[TelegramApiResponse[Message]]
+    }
   }
 
   private def sendRequest(request: HttpRequest): Future[HttpResponse] = {
@@ -57,4 +75,6 @@ class TelegramConnector(token: String)(implicit as: ActorSystem,
           "Queue was closed (pool shut down) while running the request. Try again later."))
     }
   }
+
+  private def buildUri(methodName: String): String = s"https://$baseUrl/bot$token/$methodName"
 }
