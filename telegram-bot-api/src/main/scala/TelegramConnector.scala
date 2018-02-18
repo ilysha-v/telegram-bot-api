@@ -1,5 +1,6 @@
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult}
@@ -52,7 +53,7 @@ class TelegramConnector(token: String)(implicit as: ActorSystem,
     )
 
     val request = HttpRequest(
-      uri = buildUri(methodName),
+      uri = buildUri(methodName).withQuery(Query("chat_id" -> chatId.toString)),
       method = HttpMethods.POST,
       entity = payload
     )
@@ -76,5 +77,5 @@ class TelegramConnector(token: String)(implicit as: ActorSystem,
     }
   }
 
-  private def buildUri(methodName: String): String = s"https://$baseUrl/bot$token/$methodName"
+  private def buildUri(methodName: String): Uri = Uri(s"https://$baseUrl/bot$token/$methodName")
 }

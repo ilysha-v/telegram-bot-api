@@ -14,8 +14,9 @@ object Example {
     val connector = TelegramConnection(token)
 
     connector.getUpdates().foreach(_.map {
-        case u: MessageUpdate => connector.sendMessage(u.id, ResponseMessage("Yep", Some(u.message.id)))
-        case u => connector.sendMessage(u.id, ResponseMessage("what?", None))
+        case u: MessageUpdate =>
+          connector.sendMessage(u.message.chatInfo.id, ResponseMessage(Some(u.message.id), "Yep"))
+        case u => ()
       }
     )
 

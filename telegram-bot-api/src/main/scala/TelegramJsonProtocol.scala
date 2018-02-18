@@ -68,7 +68,7 @@ trait TelegramJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
     override def write(obj: Update): JsValue = ???
   }
 
-  implicit val responseFormat = jsonFormat(ResponseMessage, "chat_id", "text")
+  implicit val responseFormat = jsonFormat(ResponseMessage, "reply_to_message_id", "text")
 }
 
 object TelegramJsonProtocol extends TelegramJsonProtocol

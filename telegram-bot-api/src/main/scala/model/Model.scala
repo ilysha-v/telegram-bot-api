@@ -32,4 +32,4 @@ sealed trait Update {
 }
 case class MessageUpdate(id: Int, message: Message) extends Update
 
-case class ResponseMessage(text: String, replyTo: Option[MessageId])
+case class ResponseMessage(replyTo: Option[MessageId], text: String)
