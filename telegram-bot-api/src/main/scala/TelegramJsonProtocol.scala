@@ -12,14 +12,17 @@ trait TelegramJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
       .map(_.parseJson.convertTo[A])
   }
 
-  implicit def anyValJsonFormat[A]() = {
-    // shapeles based format for anyvals
+  implicit def anyValJsonFormat[A <: AnyVal, B](fWrite: A => B)(fRead: B => A)(implicit jf: JsonFormat[B]) = new RootJsonFormat[A] {
+    override def write(obj: A): JsValue = jf.write(fWrite(obj))
+
+    override def read(json: JsValue): A = fRead(jf.read(json))
   }
 
   implicit val chatInfoFormat = jsonFormat(ChatInfo, "id", "first_name", "last_name")
   implicit val senderFormat = jsonFormat(Sender, "id", "is_bot", "first_name", "last_name", "username", "language_code")
   implicit def apiResponseFormat[A](implicit jf: JsonFormat[A]): JsonFormat[TelegramApiResponse[A]] =
     jsonFormat2(TelegramApiResponse[A])
+  implicit val messageIdFormat = anyValJsonFormat[MessageId, Int](_.id)(MessageId.apply)
 
   implicit val messageFormat = new RootJsonFormat[Message] {
     override def read(json: JsValue): Message = json match {
