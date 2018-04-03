@@ -7,9 +7,9 @@ import scala.concurrent.{ExecutionContext, Future}
 class TelegramConnection(private val connector: TelegramConnector)(implicit as: ActorSystem) {
   private implicit val executionContext = as.dispatcher
 
-  def getUpdates(): Future[Seq[Update]] = {
+  def getUpdates(lastUpdate: Option[UpdateId]): Future[Seq[Update]] = {
     connector
-      .getUpdates()
+      .getUpdates(lastUpdate)
       .flatMap(extractResponse)
   }
 

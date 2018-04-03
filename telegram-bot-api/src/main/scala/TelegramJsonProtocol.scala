@@ -14,7 +14,7 @@ trait TelegramJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
       .map(_.parseJson.convertTo[A])
   }
 
-  implicit def anyValJsonFormat[A <: AnyVal, B](fWrite: A => B)(fRead: B => A)(
+  implicit def anyValJsonFormat[A, B](fWrite: A => B)(fRead: B => A)(
     implicit jf: JsonFormat[B]
   ) = new RootJsonFormat[A] {
     override def write(obj: A): JsValue = jf.write(fWrite(obj))

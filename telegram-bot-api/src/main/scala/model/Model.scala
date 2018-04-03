@@ -1,8 +1,10 @@
 package model
 
 case class MessageId(id: Int) extends AnyVal
-case class UpdateId(id: Int) extends AnyVal
-
+case class UpdateId(id: Int) extends Comparable[UpdateId] {
+  override def compareTo(o: UpdateId): Int = id.compareTo(o.id)
+  def next: UpdateId = UpdateId(id + 1)
+}
 case class Message(
     id: MessageId,
     sender: Option[Sender],

@@ -7,7 +7,7 @@ import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult}
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.util.ByteString
 import com.typesafe.scalalogging.StrictLogging
-import model.{MessageUpdate, ResponseMessage, TelegramApiResponse, Update}
+import model.{MessageUpdate, ResponseMessage, TelegramApiResponse, Update, UpdateId}
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
@@ -38,11 +38,14 @@ class TelegramConnector(token: String)(
       .run()
   }
 
-  def getUpdates(): Future[TelegramApiResponse[Seq[Update]]] = {
+  def getUpdates(lastUpdate: Option[UpdateId]): Future[TelegramApiResponse[Seq[Update]]] = {
     val methodName = "getUpdates"
 
-    val request =
-      HttpRequest(method = HttpMethods.GET, uri = buildUri(methodName))
+    val uri = lastUpdate.fold(buildUri(methodName)) { lastUpdateId =>
+      buildUri(methodName).withQuery(Query("offset" -> lastUpdateId.id.toString))
+    }
+
+    val request = HttpRequest(method = HttpMethods.GET, uri = uri)
     sendRequest(request).flatMap { response =>
       Unmarshal(response).to[TelegramApiResponse[Seq[Update]]]
     }

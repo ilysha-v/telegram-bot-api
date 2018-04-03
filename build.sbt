@@ -21,6 +21,7 @@ lazy val compilerOptions = scalacOptions ++= Seq(
   "-feature",
   "-deprecation",
   "-Xfuture",
+  "-Xlog-implicits",
   "-Yno-adapted-args",
   "-Ywarn-dead-code",
   "-Ywarn-numeric-widen",
