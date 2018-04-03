@@ -1,12 +1,10 @@
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import model.{Message, ResponseMessage, TelegramApiResponse, Update}
+import model.{ResponseMessage, TelegramApiResponse, Update, UpdateId}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class TelegramConnection(private val connector: TelegramConnector)(implicit as: ActorSystem) {
-
-  private implicit val mat = ActorMaterializer()
   private implicit val executionContext = as.dispatcher
 
   def getUpdates(): Future[Seq[Update]] = {
@@ -15,13 +13,13 @@ class TelegramConnection(private val connector: TelegramConnector)(implicit as: 
       .flatMap(extractResponse)
   }
 
-  def sendMessage(chatId: Int, response: ResponseMessage): Future[Message] = {
-    connector.sendMessage(chatId, response).flatMap(extractResponse)
+  def sendMessage(chatId: Int, response: ResponseMessage): Future[UpdateId] = {
+    connector.sendMessage(chatId, response).flatMap(extractResponse).map(_.id)
   }
 
   private def extractResponse[A](r: TelegramApiResponse[A]): Future[A] = {
     if (r.ok) Future.successful(r.result)
-    else Future.failed(new RuntimeException("problem")) // todo typed exception
+    else Future.failed(new RuntimeException("problem")) // todo typed exception and log
   }
 }
 

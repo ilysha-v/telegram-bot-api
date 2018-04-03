@@ -6,7 +6,8 @@ import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult}
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.util.ByteString
-import model.{Message, ResponseMessage, TelegramApiResponse, Update}
+import com.typesafe.scalalogging.StrictLogging
+import model.{MessageUpdate, ResponseMessage, TelegramApiResponse, Update}
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
@@ -15,15 +16,17 @@ import scala.util.{Failure, Success}
   * Lower level api client - provide full access to telegram responses.
   * For more high-level APIs you should use TelegramConnection
   */
-class TelegramConnector(token: String)(implicit as: ActorSystem,
-                                       ec: ExecutionContext,
-                                       mat: ActorMaterializer) {
+class TelegramConnector(token: String)(
+  implicit as: ActorSystem,
+   ec: ExecutionContext,
+   mat: ActorMaterializer) extends StrictLogging {
   import spray.json._
   import TelegramJsonProtocol._
 
   private val baseUrl = s"api.telegram.org"
   private lazy val queue = {
-    val connectionPool = Http().cachedHostConnectionPoolHttps[Promise[HttpResponse]](baseUrl)
+    val connectionPool =
+      Http().cachedHostConnectionPoolHttps[Promise[HttpResponse]](baseUrl)
 
     Source
       .queue[(HttpRequest, Promise[HttpResponse])](20, OverflowStrategy.dropNew) // todo size to config
@@ -38,13 +41,14 @@ class TelegramConnector(token: String)(implicit as: ActorSystem,
   def getUpdates(): Future[TelegramApiResponse[Seq[Update]]] = {
     val methodName = "getUpdates"
 
-    val request = HttpRequest(method = HttpMethods.GET, uri = buildUri(methodName))
+    val request =
+      HttpRequest(method = HttpMethods.GET, uri = buildUri(methodName))
     sendRequest(request).flatMap { response =>
       Unmarshal(response).to[TelegramApiResponse[Seq[Update]]]
     }
   }
 
-  def sendMessage(chatId: Int, message: ResponseMessage): Future[TelegramApiResponse[Message]] = {
+  def sendMessage(chatId: Int, message: ResponseMessage): Future[TelegramApiResponse[MessageUpdate]] = {
     val methodName = "sendMessage"
 
     val payload = HttpEntity.Strict(
@@ -59,14 +63,22 @@ class TelegramConnector(token: String)(implicit as: ActorSystem,
     )
 
     sendRequest(request).flatMap { response =>
-      Unmarshal(response).to[TelegramApiResponse[Message]]
+      Unmarshal(response).to[TelegramApiResponse[MessageUpdate]]
     }
   }
 
   private def sendRequest(request: HttpRequest): Future[HttpResponse] = {
+    logger.debug(s"Sending request to Telegram API: $request")
+
     val responsePromise = Promise[HttpResponse]()
     queue.offer(request -> responsePromise).flatMap { // todo error handling
-      case QueueOfferResult.Enqueued => responsePromise.future
+      case QueueOfferResult.Enqueued =>
+        val result = responsePromise.future
+        result.onComplete {
+          case Success(r) => logger.debug(s"Request was successfully completed. Result: $r")
+          case Failure(ex) => logger.error("Got error while sending request to Telegram API", ex)
+        }
+        result
       case QueueOfferResult.Dropped =>
         Future.failed(
           new RuntimeException("Queue overflowed. Try again later."))
@@ -77,5 +89,6 @@ class TelegramConnector(token: String)(implicit as: ActorSystem,
     }
   }
 
-  private def buildUri(methodName: String): Uri = Uri(s"https://$baseUrl/bot$token/$methodName")
+  private def buildUri(methodName: String): Uri =
+    Uri(s"https://$baseUrl/bot$token/$methodName")
 }

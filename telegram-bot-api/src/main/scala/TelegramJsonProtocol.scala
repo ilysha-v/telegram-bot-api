@@ -4,6 +4,8 @@ import akka.http.scaladsl.unmarshalling.Unmarshaller
 import model._
 import spray.json._
 
+import scala.language.implicitConversions
+
 trait TelegramJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
   implicit def createUnmarshaller[A](implicit jf: JsonReader[A]) = {
     Unmarshaller
@@ -12,9 +14,10 @@ trait TelegramJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
       .map(_.parseJson.convertTo[A])
   }
 
-  implicit def anyValJsonFormat[A <: AnyVal, B](fWrite: A => B)(fRead: B => A)(implicit jf: JsonFormat[B]) = new RootJsonFormat[A] {
+  implicit def anyValJsonFormat[A <: AnyVal, B](fWrite: A => B)(fRead: B => A)(
+    implicit jf: JsonFormat[B]
+  ) = new RootJsonFormat[A] {
     override def write(obj: A): JsValue = jf.write(fWrite(obj))
-
     override def read(json: JsValue): A = fRead(jf.read(json))
   }
 
@@ -22,7 +25,9 @@ trait TelegramJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
   implicit val senderFormat = jsonFormat(Sender, "id", "is_bot", "first_name", "last_name", "username", "language_code")
   implicit def apiResponseFormat[A](implicit jf: JsonFormat[A]): JsonFormat[TelegramApiResponse[A]] =
     jsonFormat2(TelegramApiResponse[A])
+
   implicit val messageIdFormat = anyValJsonFormat[MessageId, Int](_.id)(MessageId.apply)
+  implicit val updateIdFormat = anyValJsonFormat[UpdateId, Int](_.id)(UpdateId.apply)
 
   implicit val messageFormat = new RootJsonFormat[Message] {
     override def read(json: JsValue): Message = json match {
@@ -47,7 +52,7 @@ trait TelegramJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
   implicit val messageUpdateFormat = new RootJsonFormat[MessageUpdate] {
     override def read(json: JsValue): MessageUpdate = json match {
       case obj: JsObject =>
-        val updateId = obj.fields("update_id").convertTo[Int]
+        val updateId = obj.fields("update_id").convertTo[UpdateId]
         obj.fields match {
           case x if x.contains("message") =>
             val payload = obj.fields("message").convertTo[Message]
@@ -65,7 +70,7 @@ trait TelegramJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
       case _ => deserializationError("Value of update field must be an object")
     }
 
-    override def write(obj: Update): JsValue = ???
+    override def write(obj: Update): JsValue = serializationError("Update serialization is not supported")
   }
 
   implicit val responseFormat = jsonFormat(ResponseMessage, "reply_to_message_id", "text")

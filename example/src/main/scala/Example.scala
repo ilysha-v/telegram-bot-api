@@ -19,12 +19,6 @@ object Example {
         case u => ()
       }
     )
-
-//    for {
-//      updates <-
-//
-//      _ = println(updates)
-//    } yield as.terminate()
   }
 }
 
