@@ -1,3 +1,5 @@
+package ru.vilysha.telega
+
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.ContentTypes
 import akka.http.scaladsl.unmarshalling.Unmarshaller
@@ -28,6 +30,7 @@ trait TelegramJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
 
   implicit val messageIdFormat = anyValJsonFormat[MessageId, Int](_.id)(MessageId.apply)
   implicit val updateIdFormat = anyValJsonFormat[UpdateId, Int](_.id)(UpdateId.apply)
+  implicit val locationFormat = jsonFormat(Location, "longitude", "latitude")
 
   implicit val messageFormat = new RootJsonFormat[Message] {
     override def read(json: JsValue): Message = json match {
@@ -37,18 +40,18 @@ trait TelegramJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
         val date = obj.fields("date").convertTo[Int]
         val chatInfo = obj.fields("chat").convertTo[ChatInfo]
         val text = obj.fields.get("text").map(_.convertTo[String])
+        val location = obj.fields.get("location").map(_.convertTo[Location])
 
         // todo other fields
         // todo be careful with options
         // todo Map.get will return default value, should return some kind of error instead
 
-        Message(id, sender, date, chatInfo, text)
+        Message(id, sender, date, chatInfo, text, location)
       case _ => deserializationError("Value of message field must be an object")
     }
 
     override def write(obj: Message): JsValue = serializationError("not implemented")
   }
-
   implicit val messageUpdateFormat = new RootJsonFormat[MessageUpdate] {
     override def read(json: JsValue): MessageUpdate = json match {
       case obj: JsObject =>

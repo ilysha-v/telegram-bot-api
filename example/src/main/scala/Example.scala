@@ -1,7 +1,8 @@
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
-import model.{MessageUpdate, ResponseMessage, Update}
+import ru.vilysha.telega.TelegramConnection
+import ru.vilysha.telega.model.{MessageUpdate, ResponseMessage, Update}
 
 object Example {
   def main(args: Array[String]): Unit = {

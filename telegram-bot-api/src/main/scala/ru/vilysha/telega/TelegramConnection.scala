@@ -1,3 +1,5 @@
+package ru.vilysha.telega
+
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import model.{ResponseMessage, TelegramApiResponse, Update, UpdateId}
