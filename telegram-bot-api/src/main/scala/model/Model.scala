@@ -7,7 +7,7 @@ case class UpdateId(id: Int) extends Comparable[UpdateId] {
 }
 case class Message(
     id: MessageId,
-    sender: Option[Sender],
+    sender: Option[User],
     date: Int,
     chatInfo: ChatInfo,
     text: Option[String]
@@ -15,7 +15,7 @@ case class Message(
 
 case class TelegramApiResponse[T](ok: Boolean, result: T)
 
-case class Sender(
+case class User(
     id: Int,
     isBot: Boolean,
     firstName: String,

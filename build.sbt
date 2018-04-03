@@ -11,8 +11,7 @@ lazy val clientDeps = libraryDependencies ++= Seq(
   "com.github.pureconfig" %% "pureconfig" % "0.7.0",
   "ch.qos.logback" % "logback-classic" % "1.2.3",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.8.0",
-  "org.scalatest" %% "scalatest" % "3.0.1" % "test",
-  "org.mockito" % "mockito-core" % "2.13.0" % Test
+  "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 )
 
 lazy val compilerOptions = scalacOptions ++= Seq(

@@ -22,7 +22,7 @@ trait TelegramJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
   }
 
   implicit val chatInfoFormat = jsonFormat(ChatInfo, "id", "first_name", "last_name")
-  implicit val senderFormat = jsonFormat(Sender, "id", "is_bot", "first_name", "last_name", "username", "language_code")
+  implicit val userFormat = jsonFormat(User, "id", "is_bot", "first_name", "last_name", "username", "language_code")
   implicit def apiResponseFormat[A](implicit jf: JsonFormat[A]): JsonFormat[TelegramApiResponse[A]] =
     jsonFormat2(TelegramApiResponse[A])
 
@@ -33,7 +33,7 @@ trait TelegramJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
     override def read(json: JsValue): Message = json match {
       case obj: JsObject =>
         val id = obj.fields("message_id").convertTo[MessageId]
-        val sender = obj.fields.get("from").map(_.convertTo[Sender])
+        val sender = obj.fields.get("from").map(_.convertTo[User])
         val date = obj.fields("date").convertTo[Int]
         val chatInfo = obj.fields("chat").convertTo[ChatInfo]
         val text = obj.fields.get("text").map(_.convertTo[String])
