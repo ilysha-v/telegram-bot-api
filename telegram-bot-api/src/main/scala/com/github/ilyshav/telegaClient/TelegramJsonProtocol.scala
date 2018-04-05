@@ -1,4 +1,4 @@
-package ru.vilysha.telega
+package com.github.ilyshav.telegaClient
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.ContentTypes

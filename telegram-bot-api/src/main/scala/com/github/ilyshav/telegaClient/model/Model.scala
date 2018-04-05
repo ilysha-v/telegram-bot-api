@@ -1,4 +1,4 @@
-package ru.vilysha.telega.model
+package com.github.ilyshav.telegaClient.model
 
 case class MessageId(id: Int) extends AnyVal
 case class UpdateId(id: Int) extends Comparable[UpdateId] {

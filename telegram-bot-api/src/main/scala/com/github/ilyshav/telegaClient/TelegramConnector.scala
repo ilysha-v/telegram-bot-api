@@ -1,4 +1,4 @@
-package ru.vilysha.telega
+package com.github.ilyshav.telegaClient
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
@@ -8,8 +8,8 @@ import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult}
 import akka.util.ByteString
+import com.github.ilyshav.telegaClient.model.{MessageUpdate, ResponseMessage, TelegramApiResponse, Update, UpdateId}
 import com.typesafe.scalalogging.StrictLogging
-import ru.vilysha.telega.model.{MessageUpdate, ResponseMessage, TelegramApiResponse, Update, UpdateId}
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
@@ -22,7 +22,7 @@ class TelegramConnector(token: String)(
   implicit as: ActorSystem,
    ec: ExecutionContext,
    mat: ActorMaterializer) extends StrictLogging {
-  import ru.vilysha.telega.TelegramJsonProtocol._
+  import TelegramJsonProtocol._
   import spray.json._
 
   private val baseUrl = s"api.telegram.org"
