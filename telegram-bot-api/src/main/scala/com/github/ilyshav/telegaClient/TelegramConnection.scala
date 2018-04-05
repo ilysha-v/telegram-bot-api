@@ -1,6 +1,8 @@
+package com.github.ilyshav.telegaClient
+
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import model.{ResponseMessage, TelegramApiResponse, Update, UpdateId}
+import com.github.ilyshav.telegaClient.model.{ResponseMessage, TelegramApiResponse, Update, UpdateId}
 
 import scala.concurrent.{ExecutionContext, Future}
 
