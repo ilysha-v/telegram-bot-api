@@ -35,14 +35,19 @@ lazy val commonSettings = Seq(
   compilerOptions
 )
 
-lazy val client = (project in file("telegram-bot-api"))
+lazy val client = (project in file("telega-client"))
   .settings(commonSettings)
   .settings(Seq(
     bintrayRepository := "telega",
     licenses += ("GPL-3.0", url("http://opensource.org/licenses/GPL-3.0"))),
-    bintrayReleaseOnPublish := false,
     name := "telega-client",
-    organization := "com.github.ilyshav"
+    organization := "com.github.ilyshav",
+    publishTo := {
+      val defaultDestination = publishTo.value
+      if (isSnapshot.value)
+        Some("OSS JFrog Snapshots" at "https://oss.jfrog.org/artifactory/oss-snapshot-local")
+      else defaultDestination
+    }
   )
 
 lazy val example = (project in file("example"))
@@ -51,6 +56,7 @@ lazy val example = (project in file("example"))
   .settings(skip in publish := true)
 
 lazy val root = (project in file(".")).aggregate(client, example)
+publish in root := publish in client
 
 
 
