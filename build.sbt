@@ -1,3 +1,5 @@
+import sbt.Keys.licenses
+
 val akkaVersion = "2.5.6"
 val akkaHttpVersion = "10.0.11"
 
@@ -13,7 +15,6 @@ lazy val clientDeps = libraryDependencies ++= Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.8.0",
   "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 )
-
 lazy val compilerOptions = scalacOptions ++= Seq(
   "-target:jvm-1.8",
   "-unchecked",
@@ -27,7 +28,6 @@ lazy val compilerOptions = scalacOptions ++= Seq(
   "-Ywarn-value-discard",
   "-Ywarn-unused"
 )
-
 lazy val commonSettings = Seq(
   scalaVersion := "2.12.4",
   releaseVersionBump := sbtrelease.Version.Bump.Minor,
@@ -37,9 +37,21 @@ lazy val commonSettings = Seq(
 
 lazy val client = (project in file("telegram-bot-api"))
   .settings(commonSettings)
+  .settings(Seq(
+    bintrayRepository := "telega",
+    licenses += ("GPL-3.0", url("http://opensource.org/licenses/GPL-3.0"))),
+    bintrayReleaseOnPublish := false,
+    name := "telega-client",
+    organization := "com.github.ilyshav"
+  )
 
 lazy val example = (project in file("example"))
   .dependsOn(client)
   .settings(commonSettings)
+  .settings(skip in publish := true)
 
 lazy val root = (project in file(".")).aggregate(client, example)
+
+
+
+
