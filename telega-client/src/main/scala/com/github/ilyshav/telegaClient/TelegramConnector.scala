@@ -8,7 +8,7 @@ import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult}
 import akka.util.ByteString
-import com.github.ilyshav.telegaClient.model.{MessageUpdate, ResponseMessage, TelegramApiResponse, Update, UpdateId}
+import com.github.ilyshav.telegaClient.model.{Message, MessageUpdate, ResponseMessage, TelegramApiResponse, Update, UpdateId}
 import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -53,7 +53,7 @@ class TelegramConnector(token: String)(
     }
   }
 
-  def sendMessage(chatId: Int, message: ResponseMessage): Future[TelegramApiResponse[MessageUpdate]] = {
+  def sendMessage(chatId: Int, message: ResponseMessage): Future[TelegramApiResponse[Message]] = {
     val methodName = "sendMessage"
 
     val payload = HttpEntity.Strict(
@@ -68,7 +68,7 @@ class TelegramConnector(token: String)(
     )
 
     sendRequest(request).flatMap { response =>
-      Unmarshal(response).to[TelegramApiResponse[MessageUpdate]]
+      Unmarshal(response).to[TelegramApiResponse[Message]]
     }
   }
 

@@ -2,7 +2,7 @@ package com.github.ilyshav.telegaClient
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import com.github.ilyshav.telegaClient.model.{ResponseMessage, TelegramApiResponse, Update, UpdateId}
+import com.github.ilyshav.telegaClient.model.{Message, ResponseMessage, TelegramApiResponse, Update, UpdateId}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -15,8 +15,8 @@ class TelegramConnection(private val connector: TelegramConnector)(implicit as: 
       .flatMap(extractResponse)
   }
 
-  def sendMessage(chatId: Int, response: ResponseMessage): Future[UpdateId] = {
-    connector.sendMessage(chatId, response).flatMap(extractResponse).map(_.id)
+  def sendMessage(chatId: Int, response: ResponseMessage): Future[Message] = {
+    connector.sendMessage(chatId, response).flatMap(extractResponse)
   }
 
   private def extractResponse[A](r: TelegramApiResponse[A]): Future[A] = {

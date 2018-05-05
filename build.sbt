@@ -10,7 +10,7 @@ lazy val clientDeps = libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion,
   "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
   "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion,
-  "com.github.pureconfig" %% "pureconfig" % "0.7.0",
+  "com.github.pureconfig" %% "pureconfig" % "0.7.0", // todo нужен только в примере
   "ch.qos.logback" % "logback-classic" % "1.2.3",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.8.0",
   "org.scalatest" %% "scalatest" % "3.0.1" % "test"
@@ -28,6 +28,7 @@ lazy val compilerOptions = scalacOptions ++= Seq(
   "-Ywarn-value-discard",
   "-Ywarn-unused"
 )
+
 lazy val commonSettings = Seq(
   scalaVersion := "2.12.4",
   releaseVersionBump := sbtrelease.Version.Bump.Minor,
