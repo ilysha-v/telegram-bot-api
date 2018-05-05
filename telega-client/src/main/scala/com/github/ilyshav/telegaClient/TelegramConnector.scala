@@ -8,7 +8,7 @@ import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult}
 import akka.util.ByteString
-import com.github.ilyshav.telegaClient.model.{Message, MessageUpdate, ResponseMessage, TelegramApiResponse, Update, UpdateId}
+import com.github.ilyshav.telegaClient.model.{Message, ResponseMessage, TelegramApiResponse, Update, UpdateId}
 import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.{ExecutionContext, Future, Promise}

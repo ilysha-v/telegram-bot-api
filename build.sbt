@@ -1,7 +1,7 @@
 import sbt.Keys.licenses
 
-val akkaVersion = "2.5.6"
-val akkaHttpVersion = "10.0.11"
+val akkaVersion = "2.5.12"
+val akkaHttpVersion = "10.1.1"
 
 lazy val clientDeps = libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % akkaVersion,
@@ -10,7 +10,6 @@ lazy val clientDeps = libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion,
   "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
   "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion,
-  "com.github.pureconfig" %% "pureconfig" % "0.7.0", // todo нужен только в примере
   "ch.qos.logback" % "logback-classic" % "1.2.3",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.8.0",
   "org.scalatest" %% "scalatest" % "3.0.1" % "test"
@@ -54,6 +53,7 @@ lazy val client = (project in file("telega-client"))
 lazy val example = (project in file("example"))
   .dependsOn(client)
   .settings(commonSettings)
+  .settings(libraryDependencies += "com.github.pureconfig" %% "pureconfig" % "0.7.0")
   .settings(skip in publish := true)
 
 lazy val root = (project in file(".")).aggregate(client, example)
